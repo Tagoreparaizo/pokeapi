@@ -14,7 +14,7 @@ Este projeto requer Python 3.12 ou superior.
 
 1.  **Clone o repositório:**
     ```bash
-    git clone <url_do_repositorio>
+    git clone https://github.com/Tagoreparaizo/pokeapi.git
     cd pokeapi
     ```
     (Nota: Substitua `<url_do_repositorio>` pela URL real se este projeto estiver hospedado em um repositório remoto.)
