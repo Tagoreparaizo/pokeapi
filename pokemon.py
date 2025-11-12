@@ -1,7 +1,6 @@
 import logging
 from mcp.server.fastmcp import FastMCP 
 import aiopoke
-import sys
 
 # --- CORREÇÃO: MOVER BASICCONFIG PARA CIMA ---
 # Configure o logging PRIMEIRO
@@ -9,9 +8,6 @@ logging.basicConfig(
     level=logging.INFO, 
     format='[POKEMON_SERVER] %(levelname)s - %(message)s'
 )
-
-
-
 
 # E a inicialização:
 mcp = FastMCP("pokemon-server")
@@ -54,6 +50,7 @@ async def get_pokemon_info(pokemon_name:str=None, pokedex_number:int = None) -> 
         logging.info(f"Pokemon {search_param} not found.")
         return f"Pokemon {search_param} not found."
     return format_pokemon_info(pokemon_info)
+
 def main():
     logging.info("Iniciando servidor em modo HTTP (streamable-http)...")
     mcp.run(
