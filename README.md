@@ -71,27 +71,39 @@ Isso retornará uma string formatada contendo o ID, nome, habilidades, tipos, es
 
 ## Conectando com o Claude Desktop
 
-Para se conectar a este servidor usando o Claude Desktop, você precisará adicionar a configuração do servidor a um arquivo JSON de configuração do cliente.
+Para se conectar a este servidor usando o Claude Desktop, você precisará encontrar e modificar o arquivo `claude_desktop_config.json`.
 
-1.  **Inicie o servidor** `pokemon.py` localmente, conforme descrito na seção "Uso". Por padrão, ele estará acessível em `http://localhost:8000`.
+### 1. Localizando o `claude_desktop_config.json`
 
-2.  **Localize o arquivo de configuração de servidores** no seu cliente Claude Desktop. Este arquivo geralmente se chama `servers.json` ou pode ser acessado através das configurações da aplicação.
+O arquivo de configuração está localizado em pastas diferentes dependendo do seu sistema operacional:
 
-3.  **Adicione a seguinte configuração** ao seu arquivo JSON. Se já houver uma lista de servidores, adicione este objeto à lista:
+*   **Windows:** `%APPDATA%\Claude Desktop\claude_desktop_config.json`
+*   **macOS:** `~/Library/Application Support/Claude Desktop/claude_desktop_config.json`
+*   **Linux:** `~/.config/Claude Desktop/claude_desktop_config.json`
 
-    ```json
-    {
-      "mcp_servers": [
-        {
-          "name": "pokemon-server",
-          "url": "http://localhost:8000/mcp",
-          "description": "Servidor para obter informações de Pokémon.",
-          "tools": [
-            "get_pokemon_info"
-          ]
-        }
+### 2. Modificando o Arquivo de Configuração
+
+**Adicione o seguinte objeto JSON dentro do objeto `mcpServers`:**
+
+```json
+{
+  "mcpServers": {
+    "pokemonmcp": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "supergateway",
+        "--streamableHttp",
+        "http://127.0.0.1:8000/mcp"
       ]
     }
-    ```
+  }
+}
+```
 
-4.  **Reinicie o Claude Desktop** ou recarregue a configuração de servidores. O `pokemon-server` agora deve aparecer como uma ferramenta disponível para uso.
+### 3. Inicie o Servidor e o Cliente
+
+1.  **Inicie o servidor** `pokemon.py` localmente.
+2.  **Reinicie o Claude Desktop**. O `pokemonmcp` deve agora aparecer como uma ferramenta disponível para uso.
