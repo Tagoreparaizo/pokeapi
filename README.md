@@ -83,7 +83,7 @@ O arquivo de configuração está localizado em pastas diferentes dependendo do 
 
 ### 2. Modificando o Arquivo de Configuração
 
-**Adicione o seguinte objeto JSON dentro do objeto `mcpServers`:**
+Depois de encontrar o arquivo, abra-o em um editor de texto e adicione o seguinte conteúdo:
 
 ```json
 {
