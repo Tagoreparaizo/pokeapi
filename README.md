@@ -68,3 +68,30 @@ Isso retornará uma string formatada contendo o ID, nome, habilidades, tipos, es
 
 *   [`mcp`](https://pypi.org/project/mcp/): O framework para construir o servidor MCP.
 *   [`aiopoke`](https://pypi.org/project/aiopoke/): Um wrapper Python assíncrono para a PokeAPI.
+
+## Conectando com o Claude Desktop
+
+Para se conectar a este servidor usando o Claude Desktop, você precisará adicionar a configuração do servidor a um arquivo JSON de configuração do cliente.
+
+1.  **Inicie o servidor** `pokemon.py` localmente, conforme descrito na seção "Uso". Por padrão, ele estará acessível em `http://localhost:8000`.
+
+2.  **Localize o arquivo de configuração de servidores** no seu cliente Claude Desktop. Este arquivo geralmente se chama `servers.json` ou pode ser acessado através das configurações da aplicação.
+
+3.  **Adicione a seguinte configuração** ao seu arquivo JSON. Se já houver uma lista de servidores, adicione este objeto à lista:
+
+    ```json
+    {
+      "mcp_servers": [
+        {
+          "name": "pokemon-server",
+          "url": "http://localhost:8000/mcp",
+          "description": "Servidor para obter informações de Pokémon.",
+          "tools": [
+            "get_pokemon_info"
+          ]
+        }
+      ]
+    }
+    ```
+
+4.  **Reinicie o Claude Desktop** ou recarregue a configuração de servidores. O `pokemon-server` agora deve aparecer como uma ferramenta disponível para uso.
