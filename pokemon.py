@@ -7,20 +7,10 @@ import sys
 # Configure o logging PRIMEIRO
 logging.basicConfig(
     level=logging.INFO, 
-    stream=sys.stderr, 
     format='[POKEMON_SERVER] %(levelname)s - %(message)s'
 )
 
-# --- AGORA ADICIONE AS LINHAS DE DEBUG ---
-import mcp.shared.version
-import mcp.types
-logging.info(f"--------------------------------------------")
-logging.info(f"--- [DEBUG] VERSÕES DO SDK DO SERVIDOR ---")
-logging.info(f"  LATEST_PROTOCOL_VERSION (mcp.types): {mcp.types.LATEST_PROTOCOL_VERSION}")
-logging.info(f"  DEFAULT_NEGOTIATED_VERSION (mcp.types): {mcp.types.DEFAULT_NEGOTIATED_VERSION}")
-logging.info(f"  SUPPORTED_PROTOCOL_VERSIONS (mcp.shared.version): {mcp.shared.version.SUPPORTED_PROTOCOL_VERSIONS}")
-logging.info(f"--------------------------------------------")
-# --- FIM DAS LINHAS ADICIONADAS ---
+
 
 
 # E a inicialização:
@@ -29,21 +19,21 @@ mcp = FastMCP("pokemon-server")
 def format_pokemon_info(pokemon_info: aiopoke.Pokemon) -> str:
     """Format Pokemon information into a readable string."""
     
-    abilities_list = [ability.ability.name.capitalize() for ability in pokemon_info.abilities]
+    abilities_list = [getattr(getattr(ability, 'ability', None), 'name', 'N/A').capitalize() for ability in pokemon_info.abilities]
     abilities = " or ".join(abilities_list)
 
-    types_list = [type.type.name.capitalize() for type in pokemon_info.types]
+    types_list = [getattr(getattr(type_obj, 'type', None), 'name', 'N/A').capitalize() for type_obj in pokemon_info.types]
     types = " and ".join(types_list)
     
-    stats_list = [f"{stat.stat.name.capitalize()}: {stat.base_stat}" for stat in pokemon_info.stats]
+    stats_list = [f"{getattr(getattr(stat_obj, 'stat', None), 'name', 'N/A').capitalize()}: {getattr(stat_obj, 'base_stat', 'N/A')}" for stat_obj in pokemon_info.stats]
     return f"""
 Pokedex: #{pokemon_info.id}
 Name: {pokemon_info.name.capitalize()}
 Abilities: {abilities}
 Types: {types}
 Stats: {', '.join(stats_list)}
-Sprites: {pokemon_info.sprites.front_default}
-Sprites (Shiny): {pokemon_info.sprites.front_shiny}
+Sprites: {pokemon_info.sprites.front_default if pokemon_info.sprites.front_default else "N/A"}
+Sprites (Shiny): {pokemon_info.sprites.front_shiny if pokemon_info.sprites.front_shiny else "N/A"}
 """
     
 
@@ -53,12 +43,13 @@ async def get_pokemon_info(pokemon_name:str=None, pokedex_number:int = None) -> 
     Args:
         pokemon_name: Name of the Pokemon
         pokedex_number: Pokedex number of the Pokemon"""
-    if not pokemon_name and not pokedex_number:
-        logging.info(f"No valid parameters provided, please provide a pokemon name or pokedex number. ")
-        return "No valid parameters provided, please provide a pokemon name or pokedex number."
+    if (pokemon_name is None and pokedex_number is None) or \
+       (pokemon_name is not None and pokedex_number is not None):
+        logging.info(f"Please provide either a pokemon name OR a pokedex number, but not both. ")
+        raise ValueError("Please provide either a pokemon name OR a pokedex number, but not both.")
     search_param = pokemon_name if pokemon_name else pokedex_number
-    client = aiopoke.AiopokeClient()
-    pokemon_info = await client.get_pokemon(search_param)
+    async with aiopoke.AiopokeClient() as client:
+        pokemon_info = await client.get_pokemon(search_param)
     if not pokemon_info:
         logging.info(f"Pokemon {search_param} not found.")
         return f"Pokemon {search_param} not found."
