@@ -1,13 +1,11 @@
 import logging
-from mcp.server.fastmcp import FastMCP 
-import aiopoke
-
-# --- CORREÇÃO: MOVER BASICCONFIG PARA CIMA ---
-# Configure o logging PRIMEIRO
 logging.basicConfig(
     level=logging.INFO, 
     format='[POKEMON_SERVER] %(levelname)s - %(message)s'
 )
+
+from mcp.server.fastmcp import FastMCP 
+import aiopoke
 
 # E a inicialização:
 mcp = FastMCP("pokemon-server")
@@ -15,13 +13,35 @@ mcp = FastMCP("pokemon-server")
 def format_pokemon_info(pokemon_info: aiopoke.Pokemon) -> str:
     """Format Pokemon information into a readable string."""
     
-    abilities_list = [getattr(getattr(ability, 'ability', None), 'name', 'N/A').capitalize() for ability in pokemon_info.abilities]
+    abilities_list = []
+    for ability in pokemon_info.abilities:
+        try:
+            abilities_list.append(ability.ability.name.capitalize())
+        except AttributeError:
+            abilities_list.append('N/A')
     abilities = " or ".join(abilities_list)
 
-    types_list = [getattr(getattr(type_obj, 'type', None), 'name', 'N/A').capitalize() for type_obj in pokemon_info.types]
+    types_list = []
+    for type_obj in pokemon_info.types:
+        try:
+            types_list.append(type_obj.type.name.capitalize())
+        except AttributeError:
+            types_list.append('N/A')
     types = " and ".join(types_list)
     
-    stats_list = [f"{getattr(getattr(stat_obj, 'stat', None), 'name', 'N/A').capitalize()}: {getattr(stat_obj, 'base_stat', 'N/A')}" for stat_obj in pokemon_info.stats]
+    stats_list = []
+    for stat_obj in pokemon_info.stats:
+        stat_name = 'N/A'
+        base_stat = 'N/A'
+        try:
+            stat_name = stat_obj.stat.name.capitalize()
+        except AttributeError:
+            pass
+        try:
+            base_stat = stat_obj.base_stat
+        except AttributeError:
+            pass
+        stats_list.append(f"{stat_name}: {base_stat}")
     return f"""
 Pokedex: #{pokemon_info.id}
 Name: {pokemon_info.name.capitalize()}
@@ -39,16 +59,16 @@ async def get_pokemon_info(pokemon_name:str=None, pokedex_number:int = None) -> 
     Args:
         pokemon_name: Name of the Pokemon
         pokedex_number: Pokedex number of the Pokemon"""
-    if (pokemon_name is None and pokedex_number is None) or \
-       (pokemon_name is not None and pokedex_number is not None):
-        logging.info(f"Please provide either a pokemon name OR a pokedex number, but not both. ")
+    if pokemon_name is not None and pokedex_number is not None:
         raise ValueError("Please provide either a pokemon name OR a pokedex number, but not both.")
+    if pokemon_name is None and pokedex_number is None:
+        raise ValueError("Please provide either a pokemon name OR a pokedex number.")
     search_param = pokemon_name if pokemon_name else pokedex_number
     async with aiopoke.AiopokeClient() as client:
         pokemon_info = await client.get_pokemon(search_param)
     if not pokemon_info:
-        logging.info(f"Pokemon {search_param} not found.")
-        return f"Pokemon {search_param} not found."
+        logging.warning(f"Pokemon {search_param} not found.")
+        raise ValueError(f"Pokemon {search_param} not found.")
     return format_pokemon_info(pokemon_info)
 
 def main():
